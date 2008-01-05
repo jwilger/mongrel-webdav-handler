@@ -1,0 +1,180 @@
+PluggableMongrelWebdavHandler
+=============================
+
+This plugin provides a WebDAV handler for Mongrel that can run in-process with your Rails site and handle any WebDAV requests outside of the Rails framework. The handler takes care of all the nasty WebDAV protocol stuff, but you must provide the objects that ultimately store and retrieve the folders, files and properties that get served up. As long as your root collection object and resource objects adhere to the simple interface outlined below, they should work just fine. This means it should be relatively easy to either serve up a real directory on the server's hard drive or serve up a completely virtual filesystem from information stored in a database, etc.
+
+Interfaces
+==========
+
+There are two seperate interfaces that must be implemented for your objects to work with the PluggableMongrelWebdavHandler: the root collection interface and the resource interface. An object that could serve as the root collection would look like:
+
+	class MyRootCollection
+		# Takes an href string relative to the WebDAV root directory and
+		# returns a resource object (implementing the interface below) if a
+		# resource exists at that href address. Must returns nil if no
+		# resource is found.
+		def find_by_href( href )
+		end
+		
+		# Copies the resource identified by src_href to dest_href. If
+		# dest_href already exists, this method /must/ remove it before making
+		# the copy. If src_href identifies a collection and options contains
+		# `:shallow => true`, then only the collection is copied, not any of
+		# its contents. This method must return the newly created resource.
+		# Also, any properties associated with src_href must be copied to
+		# dest_href as well.
+		def copy( src_href, dest_href, options = {} )
+		end
+		
+		# Behaves similarly to the #copy method above. Key differences are
+		# that the `:shallow => true` option is not supported and the resource
+		# must no longer appear under src_href afterwards. Whether your
+		# specific implementation performs a copy and then deletes the source
+		# or does an actual "move" is not important to this plugin's code
+		# (although it may have ramifications specific to your application).
+		# The method must return the newly created resource at dest_href.
+		def move( src_href, dest_href )
+		end
+	end
+
+and any object that you want to serve up as a resource must have the following interface:
+
+	class MyResource
+		# This method is used to search for a particular property on a
+		# resource. Given a namespace and a property name, it must return a
+		# two-element array with a status code and either the property value
+		# or nil. If the property exists on the resource, the status code
+		# should be 200. If the property does not exist or can not be read,
+		# the status code should be 404 (think HTTP status codes here).
+		#
+		# Every resource must provide the following properties under the
+		# "DAV:" namespace:
+		#  - creationdate (formatted as ISO8601, i.e. Time.now.xmlschema )
+		#  - displayname (name of the file/folder as it should be displayed in
+		#                a filesystem explorer)
+		#  - getcontentlength (the size of the resource in bytes)
+		#  - getcontenttype (the mime-type of the resource, i.e. 'text/plain'
+		#                   or 'httpd/unix-directory')
+		#  - getetag (the ETag for the resource as defined in the HTTP
+		#            specifications)
+		#  - getlastmodified (the modification timestamp for the resource
+		#                    formatted as rfc1123-date, i.e.
+		#                    Time.now.httpdate)
+		def get_prop( namespace, property )
+		end
+		
+		# This method sets a given property on a resource to the specified
+		# value. The method must return a status code of 200 if the property
+		# already exists and the value was updated, 201 if the property did
+		# not exist and has been created or 403 if the property can not be
+		# created.
+		def set_prop( namespace, property, value )
+		end
+		
+		# This method removes a given property from a resource. It returns a
+		# status code of 200 if the property was removed or 403 if the
+		# property can not be removed.
+		def remove_prop( namespace, property )
+		end
+		
+		# This method returns a flat array of the child resources of the
+		# resource including the subfolders and their contents up to +depth+
+		# levels. For instance, a depth of 0 would return an empty array while
+		# a depth of 1 would return the resource's immediate children and a
+		# depth of 2 would return the resource's immediate children and its
+		# grandchildren. If depth is set to the symbol :all, then the array
+		# should include every sub-resource no matter how many levels deep.
+		def get_children( depth )
+		end
+		
+		# if this resource is a collection, this method should create a
+		# sub-collection of this resource and return the new resource.
+		# For example, if the current resource's href is "foo/bar/" and you
+		# call this method with the name "baz", the new resource will be a
+		# collection located at "foo/bar/baz/".
+		# It is safe to assume that this method will not be called on a
+		# non-collection resource, but you may wish to raise an exception in
+		# your implementation if that occurs.
+		def make_collection( name )
+		end
+		
+		# if this resource is a collection, this method will create a new file
+		# resource as a child using the given name and with the specified
+		# content. This method must return the newly created resource.
+		def put( name, content )
+		end
+		
+		# Deletes this resource fomr the server. If it is a collection, all
+		# sub-resources must be deleted as well.
+		def delete
+		end
+		
+		# Returns the portion of this resource's URI relative to the root of
+		# this WebDAV server. For instance, if the full URI to this resource
+		# is http://example.com/webdav/foo/bar and the webdav server root is
+		# http://example.com/webdav/, then this method would return "foo/bar".
+		# If this resource is a collection then the href returned must end
+		# with a trailing slash *unless* it represents the root collection
+		# itself. If this resource represents the root colection then this
+		# method should return an empty string.
+		def href
+		end
+		
+		# This method must return the file contents of the resource. It should
+		# never be called on a collection resource, and it is OK to raise an
+		# exception if that occurs.
+		def content
+		end
+		
+		# Returns true if this resource is a collection, otherwise false.
+		def collection?
+		end
+	end
+
+Controller Setup
+================
+
+Once you have created the classes/objects that will serve as the resources and root collection, you need to create a "controller" class as a subclass of PluggableMongrelWebdavHandler::Base which will allow you to configure your WebDAV instance. This might look as follows:
+
+	class MyWebdavHandler < PluggableMongrelWebdavHandler
+		load_root_collection { MyRootCollection.new }
+		
+		authenticate do |auth_header|
+			u,p = Base64.decode64( ( auth_header || '' ).
+				sub( /^Basic\s+/, '' ) ).split( ':', 2 )
+		    if u == 'test' && p == 'test'
+		      :user
+		    else
+		      nil
+		    end
+		end
+		
+		set_www_authenticate_header 'Basic realm="My WebDAV"'
+	end
+
+In the code above, the "load_root_collection" line is setting up a Proc which will be called on every request to get an instance of your root collection object.
+
+The "authenticate" allows you to specify a block of code that will be called on every request and will be passed the "Authentication" header form the client. It must return either an object representing the authenticated user or nil if the user could not be authenticated.
+
+The "set_www_authenticate_header" method takes a string which will be send as the 'WWW-Authenticate' header in the event that the authentication fails.
+
+The example above implements a simple HTTP-Basic authentication requirement that will allow a user to access the site if the use the username/password of test/test. Because you have access to the raw 'Authentication' header and the ability to specify the 'WWW-Authenticate' header, you are free to implement whatever authentication scheme you wish as long as it is supported by the WebDAV clients you will be supporting.
+
+Mongrel Configuration
+=====================
+
+Now you need to tell mongrel to serve requests for certain URIs using your WebDAV handler instead of Rails. The easiest way to do this is to create a mongrel configuration script in 'config/mongrel_config.rb' and ad the following to it (for example):
+
+	require File.expand_path( RAILS_ROOT +
+		'/app/controllers/my_webdav_handler' )
+	uri '/webdav', :handler => MyWebdavHandler.new, :in_front => true
+
+You can include this file when mongrel starts up by using the -S switch to the `mongrel_rails start` command. For example:
+
+	mongrel_rails start -S ./config/mongrel_config.rb
+
+For other methods of including this configuration script, please consult the mongrel documentation. (punt!)
+
+Now, any requests starting with http://example.com/webdav will be served by your WebDAV handler.
+
+Copyright (c) 2007 John Wilger <johnwilger@gmail.com>, released under the MIT license
