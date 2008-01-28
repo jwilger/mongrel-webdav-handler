@@ -56,9 +56,10 @@ module PluggableMongrelWebdavHandler
     end
     
     def execute
+      body = request_body.read
       return { :status => 404 } if resource.nil?
-      return { :status => 400 } if request_body =~ /xmlns(:\w+)?=""/
-      if request_body.empty?
+      return { :status => 400 } if body =~ /xmlns(:\w+)?=""/
+      if body.empty?
         default_request_body = ''
         xml = Builder::XmlMarkup.new( :target => default_request_body )
         xml.instruct!
@@ -75,7 +76,7 @@ module PluggableMongrelWebdavHandler
         end
         propfind_xml = REXML::Document.new( default_request_body ).root
       else
-        propfind_xml = REXML::Document.new( request_body ).root
+        propfind_xml = REXML::Document.new( body ).root
       end
       @dav_namespace = propfind_xml.namespaces.index( 'DAV:' )
       if @dav_namespace == 'xmlns'
