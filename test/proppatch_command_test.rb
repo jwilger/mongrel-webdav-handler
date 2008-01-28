@@ -40,7 +40,7 @@ unit_tests do
     resource.expects( :set_prop ).with( 'http://example.com/test', 'foo', 'some foo text' ).returns( 200 )
     resource.expects( :set_prop ).with( 'http://example.com/test2', 'bar', 'some bar text' ).returns( 201 )
     
-    cmd = PluggableMongrelWebdavHandler::ProppatchCommand.new( root_collection, user, params, req_body )
+    cmd = PluggableMongrelWebdavHandler::ProppatchCommand.new( root_collection, user, params, StringIO.new( req_body ) )
     
     expected_body = ''
     xml = Builder::XmlMarkup.new( :target => expected_body, :indent => 4 )
@@ -92,7 +92,7 @@ unit_tests do
     resource.expects( :remove_prop ).with( 'http://example.com/test', 'foo' ).returns( 200 )
     resource.expects( :remove_prop ).with( 'http://example.com/test2', 'bar' ).returns( 200 )
     
-    cmd = PluggableMongrelWebdavHandler::ProppatchCommand.new( root_collection, user, params, req_body )
+    cmd = PluggableMongrelWebdavHandler::ProppatchCommand.new( root_collection, user, params, StringIO.new( req_body ) )
     
     expected_body = ''
     xml = Builder::XmlMarkup.new( :target => expected_body, :indent => 4 )
@@ -154,7 +154,7 @@ unit_tests do
     resource.expects( :remove_prop ).with( 'http://example.com/test', 'foo' ).returns( 200 )
     resource.expects( :set_prop ).with( 'http://example.com/test', 'foo', 'new foo text' ).returns( 200 )
     
-    cmd = PluggableMongrelWebdavHandler::ProppatchCommand.new( root_collection, user, params, req_body )
+    cmd = PluggableMongrelWebdavHandler::ProppatchCommand.new( root_collection, user, params, StringIO.new( req_body ) )
     cmd.execute
     
     assert_equal( { :method => :set_prop, :args => [ 'http://example.com/test', 'foo', 'foo text' ] }, call_prx.__calls__[ 0 ] )

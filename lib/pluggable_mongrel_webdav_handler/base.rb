@@ -22,8 +22,7 @@ module PluggableMongrelWebdavHandler
       root_collection = self.class.root_collection_loader.call
       params = extract_params( request.params )
       return unless user = authenticate_user( params, response )
-      request_body = request.body.read
-      command = get_command( root_collection, user, params, request_body )
+      command = get_command( root_collection, user, params, request.body )
       result = command.execute
       response.start( result[ :status ] ) do |head, body|
         set_headers( head, result, params )
