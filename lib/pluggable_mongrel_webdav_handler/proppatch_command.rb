@@ -1,7 +1,8 @@
 module PluggableMongrelWebdavHandler
   class ProppatchCommand < Command
     def execute
-      proppatch_xml = REXML::Document.new( request_body ).root
+      body = request_body.read
+      proppatch_xml = REXML::Document.new( body ).root
       dav_namespace = proppatch_xml.namespaces.index( 'DAV:' )
       if dav_namespace == 'xmlns'
         properties = proppatch_xml.get_elements( "//prop/*" )

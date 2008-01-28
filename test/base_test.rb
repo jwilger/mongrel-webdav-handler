@@ -25,13 +25,14 @@ unit_tests do
       user = stub
       handler_class.load_root_collection { root_collection }
       handler_class.authenticate { |auth_header| user if auth_header == 'abc' }
+      req_body = stub
       req_params = { 'REQUEST_METHOD' => request_method,
         'HTTP_AUTHORIZATION' => 'abc', 'PATH_INFO' => '/foo/bar',
         'SCRIPT_NAME' => '/baz', 'FRAGMENT' => 'ham',
         'HTTP_DESTINATION' => 'http://localhost:3000/baz/foo/baz/' ,
         'HTTP_HOST' => 'localhost:3000' }
       request = stub( :params => req_params,
-        :body => StringIO.new( 'request text' ) )
+        :body => req_body )
       command = mock
       expected_command_params = {
         :script_name => '/baz',
@@ -44,7 +45,7 @@ unit_tests do
         :fragment => 'ham'
       }
       command_class.expects( :new ).
-        with( root_collection, user, expected_command_params, 'request text' ).
+        with( root_collection, user, expected_command_params, req_body ).
         returns( command )
       result = { :status => 200, :headers => { 'Allow' => 'GET,PUT' } }
       command.expects( :execute ).returns( result )
@@ -89,11 +90,11 @@ unit_tests do
     handler_class.load_root_collection { root_collection }
     handler_class.authenticate { |auth_header| nil }
     handler_class.set_www_authenticate_header 'Basic(realm="nuts")'
+    req_body = stub
     req_params = { 'REQUEST_METHOD' => 'OPTIONS',
       'HTTP_AUTHORIZATION' => 'abc', 'PATH_INFO' => '/foo/bar',
       'SCRIPT_NAME' => '/baz' }
-    request = stub( :params => req_params,
-      :body => StringIO.new( 'request text' ) )
+    request = stub( :params => req_params, :body => req_body )
     command = mock
     expected_command_params = {
       :script_name => '/baz',
@@ -107,7 +108,7 @@ unit_tests do
     }
     PluggableMongrelWebdavHandler::OptionsCommand.expects( :new ).
       with( root_collection, :anonymous_options_request_allowed,
-        expected_command_params, 'request text' ).
+        expected_command_params, req_body ).
       returns( command )
     result = { :status => 200, :headers => { 'Allow' => 'GET,PUT' } }
     command.expects( :execute ).returns( result )
