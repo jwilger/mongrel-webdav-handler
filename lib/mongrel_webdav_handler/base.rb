@@ -5,6 +5,10 @@ module MongrelWebdavHandler
       attr_reader :authenticater
       attr_reader :www_authenticate_header
       
+      # The block provided to this method is executed using #instance_eval
+      # on the instance of MongrelWebdavHandler::Base that is handling the
+      # request. This means that this block has access to the instance
+      # variables and methods of the handler.
       def load_root_collection( &blk )
         @root_collection_loader = blk
       end
@@ -19,7 +23,7 @@ module MongrelWebdavHandler
     end
     
     def process( request, response )
-      root_collection = self.class.root_collection_loader.call
+      root_collection = instance_eval( &self.class.root_collection_loader )
       params = extract_params( request.params )
       return unless user = authenticate_user( params, response )
       command = get_command( root_collection, user, params, request.body )
