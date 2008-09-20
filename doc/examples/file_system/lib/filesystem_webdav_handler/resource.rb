@@ -72,7 +72,7 @@ class FilesystemWebdavHandler
     def put( name, content )
       path = File.join( @path, name )
       File.open( path, 'w' ) do |f|
-        f.write( content )
+        f.write( content.read )
       end
       Resource.new( path, @root_path )
     end
