@@ -1,0 +1,8 @@
+#!/usr/bin/env ruby
+
+$:.unshift( File.expand_path( File.dirname( __FILE__ ) + '/../lib' ) )
+require 'filesystem_webdav_handler'
+h = Mongrel::HttpServer.new( '0.0.0.0', '3000' )
+root_dir = File.expand_path( File.dirname( __FILE__ ) + '/../root' )
+h.register( '/', FilesystemWebdavHandler.new( root_dir ) )
+h.run.join
