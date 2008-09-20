@@ -106,14 +106,14 @@ module MongrelWebdavHandler
     end
     
     def clean_resource_href( params )
-      params[ 'PATH_INFO' ].gsub( /(^\/|\/$)/, '' )
+      CGI::unescape( params[ 'PATH_INFO' ].gsub( /(^\/|\/$)/, '' ) )
     end
     
     def clean_destination_href( params )
       return nil if params[ 'HTTP_DESTINATION' ].nil?
       return nil if params[ 'HTTP_DESTINATION' ].empty?
       prefix_pattern = /^https?:\/\/#{Regexp.escape( params[ 'HTTP_HOST' ] + params[ 'SCRIPT_NAME' ] )}\/?/
-      params[ 'HTTP_DESTINATION' ].gsub( prefix_pattern, '' ).gsub( /(^\/|\/$)/, '' )
+      CGI::unescape( params[ 'HTTP_DESTINATION' ].gsub( prefix_pattern, '' ).gsub( /(^\/|\/$)/, '' ) )
     end
     
     def clean_authorization( params )
