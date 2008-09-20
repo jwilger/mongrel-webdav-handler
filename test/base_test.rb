@@ -123,4 +123,24 @@ unit_tests do
     handler = handler_class.new
     handler.process( request, response )
   end
+  
+  test "should provide access to instance variables and instance methods to " +
+  "the block that loads the root collection" do
+    handler_class = Class.new( MongrelWebdavHandler::Base ) do
+      def initialize( param )
+        @param = param
+      end
+    end
+    root_collection = stub_everything
+    root_collection.expects( :new ).with( 'foo' ).returns( root_collection )
+    handler_class.load_root_collection { root_collection.new( @param ) }
+    handler_class.authenticate { |auth_header| nil }
+    handler = handler_class.new( 'foo' )
+    req_body = stub
+    req_params = { 'REQUEST_METHOD' => 'OPTIONS',
+      'HTTP_AUTHORIZATION' => 'abc', 'PATH_INFO' => '/foo/bar',
+      'SCRIPT_NAME' => '/baz' }
+    request = stub( :params => req_params, :body => req_body )
+    handler.process( request, stub_everything )
+  end
 end
