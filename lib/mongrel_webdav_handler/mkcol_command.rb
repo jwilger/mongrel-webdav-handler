@@ -1,4 +1,4 @@
-module PluggableMongrelWebdavHandler
+module MongrelWebdavHandler
   class MkcolCommand < Command
     def execute
       return { :status => 415 } unless request_body.read.empty?

@@ -1,4 +1,4 @@
-module PluggableMongrelWebdavHandler
+module MongrelWebdavHandler
   class DeleteCommand < Command
     def execute
       return { :status => 405 } unless params[ :fragment ].nil?

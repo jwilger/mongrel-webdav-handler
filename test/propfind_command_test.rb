@@ -1,5 +1,5 @@
 require File.dirname( __FILE__ ) + '/test_helper'
-require 'pluggable_mongrel_webdav_handler'
+require 'mongrel_webdav_handler'
 
 unit_tests do
   test "should set 404 status if resource does not exist" do
@@ -15,7 +15,7 @@ unit_tests do
       end
     end
     root_collection.expects( :find_by_href ).with( 'foo/bar' ).returns( nil )
-    cmd = PluggableMongrelWebdavHandler::PropfindCommand.new( root_collection, user, params, StringIO.new( req_body ) )
+    cmd = MongrelWebdavHandler::PropfindCommand.new( root_collection, user, params, StringIO.new( req_body ) )
     assert_equal( { :status => 404 }, cmd.execute )
   end
   
@@ -27,7 +27,7 @@ unit_tests do
     req_body = '<not></wellformed>'
     resource = stub
     root_collection.expects( :find_by_href ).with( 'foo/bar' ).returns( resource )
-    cmd = PluggableMongrelWebdavHandler::PropfindCommand.new( root_collection, user, params, StringIO.new( req_body ) )
+    cmd = MongrelWebdavHandler::PropfindCommand.new( root_collection, user, params, StringIO.new( req_body ) )
     expected = { :status => 400 }
     assert_equal expected, cmd.execute
   end
@@ -48,7 +48,7 @@ unit_tests do
     end
     resource = stub
     root_collection.expects( :find_by_href ).with( 'foo/bar' ).returns( resource )
-    cmd = PluggableMongrelWebdavHandler::PropfindCommand.new( root_collection, user, params, StringIO.new( req_body ) )
+    cmd = MongrelWebdavHandler::PropfindCommand.new( root_collection, user, params, StringIO.new( req_body ) )
     assert_equal( { :status => 400 }, cmd.execute )
   end
   
@@ -81,7 +81,7 @@ unit_tests do
     collection.expects( :get_prop ).with( 'http://example.com/test', 'forbiddenprop' ).returns( [ 403, nil ] )
     collection.expects( :get_prop ).with( 'http://example.com/test', 'notfoundprop' ).returns( [ 404, nil ] )
     
-    cmd = PluggableMongrelWebdavHandler::PropfindCommand.new( root_collection, user, params, StringIO.new( req_body ) )
+    cmd = MongrelWebdavHandler::PropfindCommand.new( root_collection, user, params, StringIO.new( req_body ) )
     
     expected_body = ''
     xml = Builder::XmlMarkup.new( :target => expected_body, :indent => 4 )
@@ -147,7 +147,7 @@ unit_tests do
     child_a.expects( :get_prop ).with( 'http://example.com/test', 'someprop' ).returns( [ 200, 'some <value> child_a' ] )
     child_b.expects( :get_prop ).with( 'http://example.com/test', 'someprop' ).returns( [ 200, 'some <value> child_b' ] )
     
-    cmd = PluggableMongrelWebdavHandler::PropfindCommand.new( root_collection, user, params, StringIO.new( req_body ) )
+    cmd = MongrelWebdavHandler::PropfindCommand.new( root_collection, user, params, StringIO.new( req_body ) )
     
     expected_body = ''
     xml = Builder::XmlMarkup.new( :target => expected_body, :indent => 4 )
@@ -214,7 +214,7 @@ unit_tests do
     collection.expects( :get_prop ).with( 'DAV:', 'getlastmodified' ).returns( [ 200, fixed_time.httpdate ] )
     
     
-    cmd = PluggableMongrelWebdavHandler::PropfindCommand.new( root_collection, user, params, StringIO.new( req_body ) )
+    cmd = MongrelWebdavHandler::PropfindCommand.new( root_collection, user, params, StringIO.new( req_body ) )
     
     expected_body = ''
     xml = Builder::XmlMarkup.new( :target => expected_body, :indent => 4 )

@@ -1,5 +1,5 @@
 require File.dirname( __FILE__ ) + '/test_helper'
-require 'pluggable_mongrel_webdav_handler'
+require 'mongrel_webdav_handler'
 
 unit_tests do
   test "should set return status of 404 and do nothing if specified " +
@@ -8,7 +8,7 @@ unit_tests do
     user = stub
     params = { :resource_href => 'foo/bar' }
     req_body = ''
-    cmd = PluggableMongrelWebdavHandler::DeleteCommand.new( root_collection, user, params, req_body )
+    cmd = MongrelWebdavHandler::DeleteCommand.new( root_collection, user, params, req_body )
     root_collection.expects( :find_by_href ).with( 'foo/bar' ).returns( nil )
     expected = { :status => 404 }
     assert_equal expected, cmd.execute
@@ -22,7 +22,7 @@ unit_tests do
     resource = mock
     root_collection.expects( :find_by_href ).with( 'foo/bar' ).returns( resource )
     resource.expects( :delete )
-    cmd = PluggableMongrelWebdavHandler::DeleteCommand.new( root_collection, user, params, req_body )
+    cmd = MongrelWebdavHandler::DeleteCommand.new( root_collection, user, params, req_body )
     expected = { :status => 204 }
     assert_equal expected, cmd.execute
   end
@@ -32,7 +32,7 @@ unit_tests do
     user = stub
     params = { :resource_href => 'foo/bar', :fragment => 'baz' }
     req_body = ''
-    cmd = PluggableMongrelWebdavHandler::DeleteCommand.new( root_collection, user, params, req_body )
+    cmd = MongrelWebdavHandler::DeleteCommand.new( root_collection, user, params, req_body )
     expected = { :status => 405 }
     assert_equal expected, cmd.execute
   end

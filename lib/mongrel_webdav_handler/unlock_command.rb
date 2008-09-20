@@ -1,4 +1,4 @@
-module PluggableMongrelWebdavHandler
+module MongrelWebdavHandler
   class UnlockCommand < Command
     def execute
       { :status => 200 }
