@@ -1,4 +1,4 @@
-module PluggableMongrelWebdavHandler
+module MongrelWebdavHandler
   class OptionsCommand < Command
     def execute
       allow = 'OPTIONS,GET,HEAD,PUT,DELETE,COPY,MOVE,MKCOL,PROPFIND,PROPPATCH,LOCK,UNLOCK'

@@ -1,6 +1,6 @@
 require 'rexml/document'
 
-module PluggableMongrelWebdavHandler
+module MongrelWebdavHandler
   class PropfindCommand < Command
     def generate_response( resource )
       results = {}

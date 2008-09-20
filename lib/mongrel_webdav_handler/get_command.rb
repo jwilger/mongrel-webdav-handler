@@ -1,4 +1,4 @@
-module PluggableMongrelWebdavHandler
+module MongrelWebdavHandler
   class GetCommand < Command
     def execute
       return { :status => 404 } if resource.nil?

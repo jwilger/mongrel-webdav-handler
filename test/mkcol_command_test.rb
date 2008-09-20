@@ -1,5 +1,5 @@
 require File.dirname( __FILE__ ) + '/test_helper'
-require 'pluggable_mongrel_webdav_handler'
+require 'mongrel_webdav_handler'
 
 unit_tests do
   test "should create specified collection" do
@@ -12,7 +12,7 @@ unit_tests do
     root_collection.expects( :find_by_href ).with( 'foo/bar' ).returns( nil )
     root_collection.expects( :find_by_href ).with( 'foo' ).returns( parent )
     parent.expects( :make_collection ).with( 'bar' ).returns( new_collection )
-    cmd = PluggableMongrelWebdavHandler::MkcolCommand.new( root_collection, user, params, StringIO.new( req_body ) )
+    cmd = MongrelWebdavHandler::MkcolCommand.new( root_collection, user, params, StringIO.new( req_body ) )
     expected = { :status => 201, :headers => { 'Location' => 'foo/bar' } }
     assert_equal expected, cmd.execute
   end
@@ -24,7 +24,7 @@ unit_tests do
     req_body = ''
     existing = stub
     root_collection.expects( :find_by_href ).with( 'foo/bar' ).returns( existing )
-    cmd = PluggableMongrelWebdavHandler::MkcolCommand.new( root_collection, user, params, StringIO.new( req_body ) )
+    cmd = MongrelWebdavHandler::MkcolCommand.new( root_collection, user, params, StringIO.new( req_body ) )
     expected = { :status => 405 }
     assert_equal expected, cmd.execute
   end
@@ -36,7 +36,7 @@ unit_tests do
     req_body = ''
     root_collection.expects( :find_by_href ).with( 'foo/bar' ).returns( nil )
     root_collection.expects( :find_by_href ).with( 'foo' ).returns( nil )
-    cmd = PluggableMongrelWebdavHandler::MkcolCommand.new( root_collection, user, params, StringIO.new( req_body ) )
+    cmd = MongrelWebdavHandler::MkcolCommand.new( root_collection, user, params, StringIO.new( req_body ) )
     expected = { :status => 409 }
     assert_equal expected, cmd.execute
   end
@@ -46,7 +46,7 @@ unit_tests do
     user = stub
     params = { :resource_href => 'foo/bar' }
     req_body = 'not blank'
-    cmd = PluggableMongrelWebdavHandler::MkcolCommand.new( root_collection, user, params, StringIO.new( req_body ) )
+    cmd = MongrelWebdavHandler::MkcolCommand.new( root_collection, user, params, StringIO.new( req_body ) )
     expected = { :status => 415 }
     assert_equal expected, cmd.execute
   end

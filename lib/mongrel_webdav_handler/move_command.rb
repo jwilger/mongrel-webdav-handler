@@ -1,4 +1,4 @@
-module PluggableMongrelWebdavHandler
+module MongrelWebdavHandler
   class MoveCommand < Command
     def execute
       return { :status => 409 } if destination_parent.nil?

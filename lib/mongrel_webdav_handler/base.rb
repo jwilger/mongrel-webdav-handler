@@ -1,4 +1,4 @@
-module PluggableMongrelWebdavHandler
+module MongrelWebdavHandler
   class Base < Mongrel::HttpHandler
     class << self
       attr_reader :root_collection_loader

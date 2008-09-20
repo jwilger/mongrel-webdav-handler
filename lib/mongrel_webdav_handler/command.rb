@@ -1,4 +1,4 @@
-module PluggableMongrelWebdavHandler
+module MongrelWebdavHandler
   class Command
     def initialize( root_collection, user, params, request_body )
       @root_collection = root_collection

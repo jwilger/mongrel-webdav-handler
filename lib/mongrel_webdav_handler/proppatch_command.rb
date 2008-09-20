@@ -1,4 +1,4 @@
-module PluggableMongrelWebdavHandler
+module MongrelWebdavHandler
   class ProppatchCommand < Command
     def execute
       body = request_body.read

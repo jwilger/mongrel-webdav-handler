@@ -1,5 +1,5 @@
 require File.dirname( __FILE__ ) + '/test_helper'
-require 'pluggable_mongrel_webdav_handler'
+require 'mongrel_webdav_handler'
 
 unit_tests do
   test "should move specified resource to destination, return status of 201 " +
@@ -13,7 +13,7 @@ unit_tests do
     root_collection.expects( :find_by_href ).with( 'foo' ).returns( parent )
     root_collection.expects( :find_by_href ).with( 'foo/baz' ).returns( nil )
     root_collection.expects( :move ).with( 'foo/bar', 'foo/baz' ).returns( new_resource )
-    cmd = PluggableMongrelWebdavHandler::MoveCommand.new( root_collection, user, params, req_body )
+    cmd = MongrelWebdavHandler::MoveCommand.new( root_collection, user, params, req_body )
     expected = { :status => 201, :headers => { 'Location' => 'foo/baz' } }
     assert_equal expected, cmd.execute
   end
@@ -28,7 +28,7 @@ unit_tests do
     existing_dest = stub
     root_collection.expects( :find_by_href ).with( 'foo' ).returns( parent )
     root_collection.expects( :find_by_href ).with( 'foo/baz' ).returns( existing_dest )
-    cmd = PluggableMongrelWebdavHandler::MoveCommand.new( root_collection, user, params, req_body )
+    cmd = MongrelWebdavHandler::MoveCommand.new( root_collection, user, params, req_body )
     expected = { :status => 412 }
     assert_equal expected, cmd.execute
   end
@@ -45,7 +45,7 @@ unit_tests do
     root_collection.expects( :find_by_href ).with( 'foo' ).returns( parent )
     root_collection.expects( :find_by_href ) .with( 'foo/baz' ).returns( existing_dest )
     root_collection.expects( :move ).with( 'foo/bar', 'foo/baz' ).returns( new_resource )
-    cmd = PluggableMongrelWebdavHandler::MoveCommand.new( root_collection, user, params, req_body )
+    cmd = MongrelWebdavHandler::MoveCommand.new( root_collection, user, params, req_body )
     expected = { :status => 204 }
     assert_equal expected, cmd.execute
   end
@@ -56,7 +56,7 @@ unit_tests do
     params = { :resource_href => 'foo/bar', :destination_href => 'bar/baz', :overwrite => false }
     req_body = ''
     root_collection.expects( :find_by_href ).with( 'bar' ).returns( nil )
-    cmd = PluggableMongrelWebdavHandler::MoveCommand.new( root_collection, user, params, req_body )
+    cmd = MongrelWebdavHandler::MoveCommand.new( root_collection, user, params, req_body )
     expected = { :status => 409 }
     assert_equal expected, cmd.execute
   end

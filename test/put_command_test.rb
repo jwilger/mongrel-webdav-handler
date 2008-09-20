@@ -1,5 +1,5 @@
 require File.dirname( __FILE__ ) + '/test_helper'
-require 'pluggable_mongrel_webdav_handler'
+require 'mongrel_webdav_handler'
 
 unit_tests do
   test "should create specified file and set 201 status and location header" do
@@ -9,7 +9,7 @@ unit_tests do
     req_body = 'this is some text'
     collection = mock
     new_file = stub( :href => 'foo/bar.txt' )
-    cmd = PluggableMongrelWebdavHandler::PutCommand.new( root_collection, user, params, req_body )
+    cmd = MongrelWebdavHandler::PutCommand.new( root_collection, user, params, req_body )
     root_collection.expects( :find_by_href ).with( 'foo' ).returns( collection )
     collection.expects( :put ).with( 'bar.txt', req_body ).returns( new_file )
     expected = { :status => 201, :headers => { 'Location' => 'foo/bar.txt' } }
