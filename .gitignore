@@ -1,3 +1,4 @@
 doc/rdoc
 coverage
 doc/examples/file_system/root/*
+.DS_Store
