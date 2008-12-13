@@ -143,4 +143,8 @@ unit_tests do
     request = stub( :params => req_params, :body => req_body )
     handler.process( request, stub_everything )
   end
+
+  test "should fail on purpose to test CI" do
+    assert false
+  end
 end
